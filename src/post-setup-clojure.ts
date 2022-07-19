@@ -1,4 +1,4 @@
 import {save} from './cache'
-import {getTools} from './utils'
+import {getTools} from './entrypoint'
 
 save(getTools())

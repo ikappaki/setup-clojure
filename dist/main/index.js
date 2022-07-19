@@ -626,7 +626,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.run = void 0;
+exports.getTools = exports.run = void 0;
 const core = __importStar(__nccwpck_require__(186));
 const lein = __importStar(__nccwpck_require__(479));
 const boot = __importStar(__nccwpck_require__(478));
@@ -639,7 +639,7 @@ const utils = __importStar(__nccwpck_require__(918));
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const { LEIN_VERSION, BOOT_VERSION, TDEPS_VERSION, CLI_VERSION, CMD_EXE_WORKAROUND, BB_VERSION, CLJ_KONDO_VERSION, CLJSTYLE_VERSION, ZPRINT_VERSION } = utils.getTools();
+            const { LEIN_VERSION, BOOT_VERSION, TDEPS_VERSION, CLI_VERSION, CMD_EXE_WORKAROUND, BB_VERSION, CLJ_KONDO_VERSION, CLJSTYLE_VERSION, ZPRINT_VERSION } = getTools();
             const tools = [];
             const githubToken = core.getInput('github-token');
             const githubAuth = githubToken ? `token ${githubToken}` : undefined;
@@ -691,6 +691,29 @@ function run() {
     });
 }
 exports.run = run;
+function getTools() {
+    const LEIN_VERSION = core.getInput('lein');
+    const BOOT_VERSION = core.getInput('boot');
+    const TDEPS_VERSION = core.getInput('tools-deps');
+    const CLI_VERSION = core.getInput('cli');
+    const CMD_EXE_WORKAROUND = core.getInput('cmd-exe-workaround');
+    const BB_VERSION = core.getInput('bb');
+    const CLJ_KONDO_VERSION = core.getInput('clj-kondo');
+    const CLJSTYLE_VERSION = core.getInput('cljstyle');
+    const ZPRINT_VERSION = core.getInput('zprint');
+    return {
+        LEIN_VERSION,
+        BOOT_VERSION,
+        TDEPS_VERSION,
+        CLI_VERSION,
+        CMD_EXE_WORKAROUND,
+        BB_VERSION,
+        CLJ_KONDO_VERSION,
+        CLJSTYLE_VERSION,
+        ZPRINT_VERSION
+    };
+}
+exports.getTools = getTools;
 
 
 /***/ }),
@@ -850,11 +873,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getTools = exports.isMacOS = exports.isWindows = exports.getTempDir = exports.getCacheVersionString = void 0;
+exports.isMacOS = exports.isWindows = exports.getTempDir = exports.getCacheVersionString = void 0;
 const os_1 = __importDefault(__nccwpck_require__(37));
 const path = __importStar(__nccwpck_require__(17));
 const version_1 = __nccwpck_require__(217);
-const core = __importStar(__nccwpck_require__(186));
 function getCacheVersionString(version) {
     const versionArray = version.split('.');
     const major = versionArray[0];
@@ -894,29 +916,6 @@ function isMacOS() {
     return os_1.default.platform() === 'darwin';
 }
 exports.isMacOS = isMacOS;
-function getTools() {
-    const LEIN_VERSION = core.getInput('lein');
-    const BOOT_VERSION = core.getInput('boot');
-    const TDEPS_VERSION = core.getInput('tools-deps');
-    const CLI_VERSION = core.getInput('cli');
-    const CMD_EXE_WORKAROUND = core.getInput('cmd-exe-workaround');
-    const BB_VERSION = core.getInput('bb');
-    const CLJ_KONDO_VERSION = core.getInput('clj-kondo');
-    const CLJSTYLE_VERSION = core.getInput('cljstyle');
-    const ZPRINT_VERSION = core.getInput('zprint');
-    return {
-        LEIN_VERSION,
-        BOOT_VERSION,
-        TDEPS_VERSION,
-        CLI_VERSION,
-        CMD_EXE_WORKAROUND,
-        BB_VERSION,
-        CLJ_KONDO_VERSION,
-        CLJSTYLE_VERSION,
-        ZPRINT_VERSION
-    };
-}
-exports.getTools = getTools;
 
 
 /***/ }),
@@ -928,7 +927,7 @@ exports.getTools = getTools;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.VERSION = void 0;
-exports.VERSION = '8-4-alpha';
+exports.VERSION = '9-0';
 
 
 /***/ }),

@@ -20,7 +20,7 @@ export async function run(): Promise<void> {
       CLJ_KONDO_VERSION,
       CLJSTYLE_VERSION,
       ZPRINT_VERSION
-    } = utils.getTools()
+    } = getTools()
 
     const tools = []
 
@@ -83,5 +83,41 @@ export async function run(): Promise<void> {
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err)
     core.setFailed(error)
+  }
+}
+
+export type Tools = {
+  LEIN_VERSION: string | null | undefined
+  BOOT_VERSION: string | null | undefined
+  TDEPS_VERSION: string | null | undefined
+  CLI_VERSION: string | null | undefined
+  CMD_EXE_WORKAROUND: string | null | undefined
+  BB_VERSION: string | null | undefined
+  CLJ_KONDO_VERSION: string | null | undefined
+  CLJSTYLE_VERSION: string | null | undefined
+  ZPRINT_VERSION: string | null | undefined
+}
+
+export function getTools(): Tools {
+  const LEIN_VERSION = core.getInput('lein')
+  const BOOT_VERSION = core.getInput('boot')
+  const TDEPS_VERSION = core.getInput('tools-deps')
+  const CLI_VERSION = core.getInput('cli')
+  const CMD_EXE_WORKAROUND = core.getInput('cmd-exe-workaround')
+  const BB_VERSION = core.getInput('bb')
+  const CLJ_KONDO_VERSION = core.getInput('clj-kondo')
+  const CLJSTYLE_VERSION = core.getInput('cljstyle')
+  const ZPRINT_VERSION = core.getInput('zprint')
+
+  return {
+    LEIN_VERSION,
+    BOOT_VERSION,
+    TDEPS_VERSION,
+    CLI_VERSION,
+    CMD_EXE_WORKAROUND,
+    BB_VERSION,
+    CLJ_KONDO_VERSION,
+    CLJSTYLE_VERSION,
+    ZPRINT_VERSION
   }
 }

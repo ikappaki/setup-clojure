@@ -1,8 +1,9 @@
 import * as cache from '@actions/cache'
 import * as core from '@actions/core'
 import * as path from 'path'
-import {Tools, isWindows, isMacOS} from './utils'
+import {isWindows, isMacOS} from './utils'
 import {VERSION} from './version'
+import {Tools} from './entrypoint'
 
 const cacheDir = process.env['RUNNER_TOOL_CACHE'] || ''
 const platform = isWindows() ? 'windows' : isMacOS() ? 'darwin' : 'linux'

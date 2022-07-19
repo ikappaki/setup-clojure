@@ -1,4 +1,4 @@
 import {restore} from './cache'
-import {getTools} from './utils'
+import {getTools} from './entrypoint'
 
 restore(getTools())
