@@ -7,8 +7,9 @@ import * as cljKondo from './clj-kondo'
 import * as cljstyle from './cljstyle'
 import * as zprint from './zprint'
 import * as utils from './utils'
+import * as cache from './cache'
 
-export async function run(): Promise<void> {
+async function main(): Promise<void> {
   try {
     const {
       LEIN_VERSION,
@@ -86,6 +87,14 @@ export async function run(): Promise<void> {
   }
 }
 
+async function pre(): Promise<void> {
+  cache.restore(getTools())
+}
+
+async function post(): Promise<void> {
+  cache.save(getTools())
+}
+
 export type Tools = {
   LEIN_VERSION: string | null | undefined
   BOOT_VERSION: string | null | undefined
@@ -98,7 +107,7 @@ export type Tools = {
   ZPRINT_VERSION: string | null | undefined
 }
 
-export function getTools(): Tools {
+function getTools(): Tools {
   const LEIN_VERSION = core.getInput('lein')
   const BOOT_VERSION = core.getInput('boot')
   const TDEPS_VERSION = core.getInput('tools-deps')
@@ -119,5 +128,42 @@ export function getTools(): Tools {
     CLJ_KONDO_VERSION,
     CLJSTYLE_VERSION,
     ZPRINT_VERSION
+  }
+}
+
+type SetupClojureActionState = 'pre' | 'main' | 'post' | 'in-progress'
+
+function ensureCurrentState(): SetupClojureActionState {
+  const st = core.getState('SETUP_CLOJURE')
+  const result =
+    st === 'pre' || st === 'main' || st === 'post' || st === 'in-progress'
+      ? st
+      : 'pre'
+  core.saveState('SETUP_CLOJURE', 'in-progress')
+
+  return result
+}
+
+function ensureNextState(prevState: 'pre' | 'main'): void {
+  const nextState: SetupClojureActionState =
+    prevState === 'pre' ? 'main' : 'post'
+  core.saveState('SETUP_CLOJURE', nextState)
+}
+
+const entrypoints = {pre, main, post}
+
+export async function run(): Promise<void> {
+  const actionState = ensureCurrentState()
+
+  if (actionState === 'in-progress') {
+    core.setFailed('Previous phase was not completed correctly')
+    return
+  }
+
+  const entrypoint = entrypoints[actionState]
+  await entrypoint()
+
+  if (actionState !== 'post') {
+    ensureNextState(actionState)
   }
 }

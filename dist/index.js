@@ -729,7 +729,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getTools = exports.run = void 0;
+exports.run = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const lein = __importStar(__nccwpck_require__(5479));
 const boot = __importStar(__nccwpck_require__(7478));
@@ -739,7 +739,8 @@ const cljKondo = __importStar(__nccwpck_require__(5736));
 const cljstyle = __importStar(__nccwpck_require__(2661));
 const zprint = __importStar(__nccwpck_require__(982));
 const utils = __importStar(__nccwpck_require__(918));
-function run() {
+const cache = __importStar(__nccwpck_require__(3782));
+function main() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const { LEIN_VERSION, BOOT_VERSION, TDEPS_VERSION, CLI_VERSION, CMD_EXE_WORKAROUND, BB_VERSION, CLJ_KONDO_VERSION, CLJSTYLE_VERSION, ZPRINT_VERSION } = getTools();
@@ -793,7 +794,16 @@ function run() {
         }
     });
 }
-exports.run = run;
+function pre() {
+    return __awaiter(this, void 0, void 0, function* () {
+        cache.restore(getTools());
+    });
+}
+function post() {
+    return __awaiter(this, void 0, void 0, function* () {
+        cache.save(getTools());
+    });
+}
 function getTools() {
     const LEIN_VERSION = core.getInput('lein');
     const BOOT_VERSION = core.getInput('boot');
@@ -816,7 +826,34 @@ function getTools() {
         ZPRINT_VERSION
     };
 }
-exports.getTools = getTools;
+function ensureCurrentState() {
+    const st = core.getState('SETUP_CLOJURE');
+    const result = st === 'pre' || st === 'main' || st === 'post' || st === 'in-progress'
+        ? st
+        : 'pre';
+    core.saveState('SETUP_CLOJURE', 'in-progress');
+    return result;
+}
+function ensureNextState(prevState) {
+    const nextState = prevState === 'pre' ? 'main' : 'post';
+    core.saveState('SETUP_CLOJURE', nextState);
+}
+const entrypoints = { pre, main, post };
+function run() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const actionState = ensureCurrentState();
+        if (actionState === 'in-progress') {
+            core.setFailed('Previous phase was not completed correctly');
+            return;
+        }
+        const entrypoint = entrypoints[actionState];
+        yield entrypoint();
+        if (actionState !== 'post') {
+            ensureNextState(actionState);
+        }
+    });
+}
+exports.run = run;
 
 
 /***/ }),
@@ -13935,7 +13972,7 @@ const punycode = __nccwpck_require__(5477);
 const urlParse = (__nccwpck_require__(7310).parse);
 const util = __nccwpck_require__(3837);
 const pubsuffix = __nccwpck_require__(8292);
-const Store = (__nccwpck_require__(8362)/* .Store */ .y);
+const Store = (__nccwpck_require__(7707)/* .Store */ .y);
 const MemoryCookieStore = (__nccwpck_require__(6738)/* .MemoryCookieStore */ .m);
 const pathMatch = (__nccwpck_require__(807)/* .pathMatch */ .U);
 const VERSION = __nccwpck_require__(8742);
@@ -15611,7 +15648,7 @@ exports.PrefixSecurityEnum = PrefixSecurityEnum;
  */
 
 const { fromCallback } = __nccwpck_require__(9046);
-const Store = (__nccwpck_require__(8362)/* .Store */ .y);
+const Store = (__nccwpck_require__(7707)/* .Store */ .y);
 const permuteDomain = (__nccwpck_require__(5696).permuteDomain);
 const pathMatch = (__nccwpck_require__(807)/* .pathMatch */ .U);
 const util = __nccwpck_require__(3837);
@@ -15966,7 +16003,7 @@ exports.getPublicSuffix = getPublicSuffix;
 
 /***/ }),
 
-/***/ 8362:
+/***/ 7707:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -65572,9 +65609,8 @@ var __webpack_exports__ = {};
 var exports = __webpack_exports__;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const cache_1 = __nccwpck_require__(3782);
 const entrypoint_1 = __nccwpck_require__(4792);
-(0, cache_1.restore)((0, entrypoint_1.getTools)());
+(0, entrypoint_1.run)();
 
 })();
 
