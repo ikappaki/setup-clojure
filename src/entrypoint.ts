@@ -140,6 +140,8 @@ async function pre(): Promise<void> {
       const error = err instanceof Error ? err.message : String(err)
       core.debug(error)
     }
+  } else {
+    core.debug('Invalidate cache!')
   }
 }
 

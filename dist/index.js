@@ -820,6 +820,9 @@ function pre() {
                 core.debug(error);
             }
         }
+        else {
+            core.debug('Invalidate cache!');
+        }
     });
 }
 function post() {

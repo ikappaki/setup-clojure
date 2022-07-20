@@ -31,7 +31,7 @@ jobs:
       - name: Execute clojure code
         run: clojure -e "(+ 1 1)"
 
-  clojure-cli:
+  test-clojure-cli:
     strategy:
       matrix:
         os: [ubuntu-latest, macOS-latest, windows-latest]
@@ -64,7 +64,7 @@ jobs:
         run: clojure -e "(+ 1 1)"
         shell: powershell
 
-  clojure-cmd-exe:
+  test-clojure-cmd-exe:
     runs-on: windows-latest
 
     steps:
