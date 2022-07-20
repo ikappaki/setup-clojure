@@ -473,7 +473,8 @@ function setupWindows(version, cmdExeWorkaround, githubAuth) {
         }
         const url = `download.clojure.org/install/win-install${version === 'latest' ? '' : `-${version}`}.ps1`;
         yield exec.exec(`powershell -c "iwr -useb ${url} | iex"`, [], {
-            input: Buffer.from('1')
+            env: { "PSModulePath": "C:\Program Files\WindowsPowerShell\Modules" },
+            input: Buffer.from('4')
         });
     });
 }
