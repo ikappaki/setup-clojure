@@ -301,52 +301,40 @@ const core = __importStar(__nccwpck_require__(2186));
 const path = __importStar(__nccwpck_require__(1017));
 const os_1 = __importDefault(__nccwpck_require__(2037));
 const version_1 = __nccwpck_require__(8217);
-const babashka = __importStar(__nccwpck_require__(6501));
-const boot = __importStar(__nccwpck_require__(7478));
-const cli = __importStar(__nccwpck_require__(2504));
-const cljstyle = __importStar(__nccwpck_require__(2661));
-const cljKondo = __importStar(__nccwpck_require__(5736));
-const leiningen = __importStar(__nccwpck_require__(5479));
-const zprint = __importStar(__nccwpck_require__(982));
 const cacheDir = process.env['RUNNER_TOOL_CACHE'] || '';
-function save() {
+function save(identifier, version) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            yield cache.saveCache(getCachePaths(), getCacheKey());
+            if (version !== 'latest') {
+                yield cache.saveCache(getCachePaths(identifier), getCacheKey(identifier, version));
+            }
         }
         catch (err) {
-            core.info('Can not save cache.');
+            const error = err instanceof Error ? err.message : String(err);
+            core.info(error);
         }
     });
 }
 exports.save = save;
-function restore() {
+function restore(identifier, version) {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            yield cache.restoreCache(getCachePaths(), getCacheKey(), []);
+            if (version !== 'latest') {
+                yield cache.restoreCache(getCachePaths(identifier), getCacheKey(identifier, version), []);
+            }
         }
         catch (err) {
-            core.info('Can not restore cache');
+            const error = err instanceof Error ? err.message : String(err);
+            core.info(error);
         }
     });
 }
 exports.restore = restore;
-function getCacheKey() {
-    return `setup-clojure-${os_1.default.platform()}-${version_1.VERSION}-${getIdentifiers().join('-')}`;
+function getCacheKey(identifier, version) {
+    return `setupclojure-${os_1.default.platform()}-${version_1.VERSION}-${identifier}-${version}`;
 }
-function getCachePaths() {
-    return getIdentifiers().map(tool => path.join(cacheDir, tool));
-}
-function getIdentifiers() {
-    return [
-        leiningen.identifier,
-        boot.identifier,
-        cli.identifier,
-        babashka.identifier,
-        cljKondo.identifier,
-        cljstyle.identifier,
-        zprint.identifier
-    ];
+function getCachePaths(identifier) {
+    return [path.join(cacheDir, identifier)];
 }
 
 
@@ -798,13 +786,77 @@ function main() {
 function pre() {
     return __awaiter(this, void 0, void 0, function* () {
         if (!core.getInput('invalidate-cache')) {
-            cache.restore();
+            try {
+                const { LEIN_VERSION, BOOT_VERSION, TDEPS_VERSION, CLI_VERSION, BB_VERSION, CLJ_KONDO_VERSION, CLJSTYLE_VERSION, ZPRINT_VERSION } = getTools();
+                const tools = [];
+                if (LEIN_VERSION) {
+                    tools.push(cache.restore(lein.identifier, LEIN_VERSION));
+                }
+                if (BOOT_VERSION) {
+                    tools.push(cache.restore(boot.identifier, BOOT_VERSION));
+                }
+                if (CLI_VERSION) {
+                    tools.push(cache.restore(cli.identifier, CLI_VERSION));
+                }
+                if (TDEPS_VERSION && !CLI_VERSION) {
+                    tools.push(cache.restore(cli.identifier, TDEPS_VERSION));
+                }
+                if (BB_VERSION) {
+                    tools.push(cache.restore(bb.identifier, BB_VERSION));
+                }
+                if (CLJ_KONDO_VERSION) {
+                    tools.push(cache.restore(cljKondo.identifier, CLJ_KONDO_VERSION));
+                }
+                if (CLJSTYLE_VERSION) {
+                    tools.push(cache.restore(cljstyle.identifier, CLJSTYLE_VERSION));
+                }
+                if (ZPRINT_VERSION) {
+                    tools.push(cache.restore(zprint.identifier, ZPRINT_VERSION));
+                }
+                yield Promise.all(tools);
+            }
+            catch (err) {
+                const error = err instanceof Error ? err.message : String(err);
+                core.info(error);
+            }
         }
     });
 }
 function post() {
     return __awaiter(this, void 0, void 0, function* () {
-        cache.save();
+        try {
+            const { LEIN_VERSION, BOOT_VERSION, TDEPS_VERSION, CLI_VERSION, BB_VERSION, CLJ_KONDO_VERSION, CLJSTYLE_VERSION, ZPRINT_VERSION } = getTools();
+            const tools = [];
+            if (LEIN_VERSION) {
+                tools.push(cache.save(lein.identifier, LEIN_VERSION));
+            }
+            if (BOOT_VERSION) {
+                tools.push(cache.save(boot.identifier, BOOT_VERSION));
+            }
+            if (CLI_VERSION) {
+                tools.push(cache.save(cli.identifier, CLI_VERSION));
+            }
+            if (TDEPS_VERSION && !CLI_VERSION) {
+                tools.push(cache.save(cli.identifier, TDEPS_VERSION));
+            }
+            if (BB_VERSION) {
+                tools.push(cache.save(bb.identifier, BB_VERSION));
+            }
+            if (CLJ_KONDO_VERSION) {
+                tools.push(cache.save(cljKondo.identifier, CLJ_KONDO_VERSION));
+            }
+            if (CLJSTYLE_VERSION) {
+                tools.push(cache.save(cljstyle.identifier, CLJSTYLE_VERSION));
+            }
+            if (ZPRINT_VERSION) {
+                tools.push(cache.save(zprint.identifier, ZPRINT_VERSION));
+            }
+            yield Promise.all(tools);
+        }
+        catch (err) {
+            const error = err instanceof Error ? err.message : String(err);
+            core.info(error);
+        }
     });
 }
 function getTools() {

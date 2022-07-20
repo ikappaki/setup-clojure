@@ -89,12 +89,112 @@ async function main(): Promise<void> {
 
 async function pre(): Promise<void> {
   if (!core.getInput('invalidate-cache')) {
-    cache.restore()
+    try {
+      const {
+        LEIN_VERSION,
+        BOOT_VERSION,
+        TDEPS_VERSION,
+        CLI_VERSION,
+        BB_VERSION,
+        CLJ_KONDO_VERSION,
+        CLJSTYLE_VERSION,
+        ZPRINT_VERSION
+      } = getTools()
+
+      const tools = []
+
+      if (LEIN_VERSION) {
+        tools.push(cache.restore(lein.identifier, LEIN_VERSION))
+      }
+
+      if (BOOT_VERSION) {
+        tools.push(cache.restore(boot.identifier, BOOT_VERSION))
+      }
+
+      if (CLI_VERSION) {
+        tools.push(cache.restore(cli.identifier, CLI_VERSION))
+      }
+
+      if (TDEPS_VERSION && !CLI_VERSION) {
+        tools.push(cache.restore(cli.identifier, TDEPS_VERSION))
+      }
+
+      if (BB_VERSION) {
+        tools.push(cache.restore(bb.identifier, BB_VERSION))
+      }
+
+      if (CLJ_KONDO_VERSION) {
+        tools.push(cache.restore(cljKondo.identifier, CLJ_KONDO_VERSION))
+      }
+
+      if (CLJSTYLE_VERSION) {
+        tools.push(cache.restore(cljstyle.identifier, CLJSTYLE_VERSION))
+      }
+
+      if (ZPRINT_VERSION) {
+        tools.push(cache.restore(zprint.identifier, ZPRINT_VERSION))
+      }
+
+      await Promise.all(tools)
+    } catch (err) {
+      const error = err instanceof Error ? err.message : String(err)
+      core.info(error)
+    }
   }
 }
 
 async function post(): Promise<void> {
-  cache.save()
+  try {
+    const {
+      LEIN_VERSION,
+      BOOT_VERSION,
+      TDEPS_VERSION,
+      CLI_VERSION,
+      BB_VERSION,
+      CLJ_KONDO_VERSION,
+      CLJSTYLE_VERSION,
+      ZPRINT_VERSION
+    } = getTools()
+
+    const tools = []
+
+    if (LEIN_VERSION) {
+      tools.push(cache.save(lein.identifier, LEIN_VERSION))
+    }
+
+    if (BOOT_VERSION) {
+      tools.push(cache.save(boot.identifier, BOOT_VERSION))
+    }
+
+    if (CLI_VERSION) {
+      tools.push(cache.save(cli.identifier, CLI_VERSION))
+    }
+
+    if (TDEPS_VERSION && !CLI_VERSION) {
+      tools.push(cache.save(cli.identifier, TDEPS_VERSION))
+    }
+
+    if (BB_VERSION) {
+      tools.push(cache.save(bb.identifier, BB_VERSION))
+    }
+
+    if (CLJ_KONDO_VERSION) {
+      tools.push(cache.save(cljKondo.identifier, CLJ_KONDO_VERSION))
+    }
+
+    if (CLJSTYLE_VERSION) {
+      tools.push(cache.save(cljstyle.identifier, CLJSTYLE_VERSION))
+    }
+
+    if (ZPRINT_VERSION) {
+      tools.push(cache.save(zprint.identifier, ZPRINT_VERSION))
+    }
+
+    await Promise.all(tools)
+  } catch (err) {
+    const error = err instanceof Error ? err.message : String(err)
+    core.info(error)
+  }
 }
 
 export type Tools = {

@@ -3,50 +3,45 @@ import * as core from '@actions/core'
 import * as path from 'path'
 import os from 'os'
 import {VERSION} from './version'
-import * as babashka from './babashka'
-import * as boot from './boot'
-import * as cli from './cli'
-import * as cljstyle from './cljstyle'
-import * as cljKondo from './clj-kondo'
-import * as leiningen from './leiningen'
-import * as zprint from './zprint'
 
 const cacheDir = process.env['RUNNER_TOOL_CACHE'] || ''
 
-export async function save(): Promise<void> {
+export async function save(identifier: string, version: string): Promise<void> {
   try {
-    await cache.saveCache(getCachePaths(), getCacheKey())
+    if (version !== 'latest') {
+      await cache.saveCache(
+        getCachePaths(identifier),
+        getCacheKey(identifier, version)
+      )
+    }
   } catch (err) {
-    core.info('Can not save cache.')
+    const error = err instanceof Error ? err.message : String(err)
+    core.info(error)
   }
 }
 
-export async function restore(): Promise<void> {
+export async function restore(
+  identifier: string,
+  version: string
+): Promise<void> {
   try {
-    await cache.restoreCache(getCachePaths(), getCacheKey(), [])
+    if (version !== 'latest') {
+      await cache.restoreCache(
+        getCachePaths(identifier),
+        getCacheKey(identifier, version),
+        []
+      )
+    }
   } catch (err) {
-    core.info('Can not restore cache')
+    const error = err instanceof Error ? err.message : String(err)
+    core.info(error)
   }
 }
 
-function getCacheKey(): string {
-  return `setup-clojure-${os.platform()}-${VERSION}-${getIdentifiers().join(
-    '-'
-  )}`
+function getCacheKey(identifier: string, version: string): string {
+  return `setupclojure-${os.platform()}-${VERSION}-${identifier}-${version}`
 }
 
-function getCachePaths(): string[] {
-  return getIdentifiers().map(tool => path.join(cacheDir, tool))
-}
-
-function getIdentifiers(): string[] {
-  return [
-    leiningen.identifier,
-    boot.identifier,
-    cli.identifier,
-    babashka.identifier,
-    cljKondo.identifier,
-    cljstyle.identifier,
-    zprint.identifier
-  ]
+function getCachePaths(identifier: string): string[] {
+  return [path.join(cacheDir, identifier)]
 }
