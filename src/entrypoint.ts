@@ -88,7 +88,7 @@ async function main(): Promise<void> {
 }
 
 async function pre(): Promise<void> {
-  if (!core.getInput('invalidate-cache')) {
+  if (!core.getBooleanInput('invalidate-cache')) {
     try {
       const {
         LEIN_VERSION,
@@ -140,8 +140,6 @@ async function pre(): Promise<void> {
       const error = err instanceof Error ? err.message : String(err)
       core.debug(error)
     }
-  } else {
-    core.debug(`Invalidate cache! ${core.getInput('invalidate-cache')}`)
   }
 }
 

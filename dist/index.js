@@ -785,7 +785,7 @@ function main() {
 }
 function pre() {
     return __awaiter(this, void 0, void 0, function* () {
-        if (!core.getInput('invalidate-cache')) {
+        if (!core.getBooleanInput('invalidate-cache')) {
             try {
                 const { LEIN_VERSION, BOOT_VERSION, TDEPS_VERSION, CLI_VERSION, BB_VERSION, CLJ_KONDO_VERSION, CLJSTYLE_VERSION, ZPRINT_VERSION } = getTools();
                 const tools = [];
@@ -819,9 +819,6 @@ function pre() {
                 const error = err instanceof Error ? err.message : String(err);
                 core.debug(error);
             }
-        }
-        else {
-            core.debug(`Invalidate cache! ${core.getInput('invalidate-cache')}`);
         }
     });
 }
