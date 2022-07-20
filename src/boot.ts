@@ -7,6 +7,8 @@ import * as os from 'os'
 import * as fs from './fs'
 import * as utils from './utils'
 
+export const identifier = 'Boot'
+
 function getTempDirectory(): string {
   let tempDirectory = process.env['RUNNER_TEMP'] || ''
 
@@ -31,7 +33,7 @@ export async function setup(
   githubAuth?: string
 ): Promise<void> {
   let toolPath = tc.find(
-    'Boot',
+    identifier,
     utils.getCacheVersionString(version),
     os.arch()
   )
@@ -58,7 +60,7 @@ export async function setup(
     core.debug(`Boot installed to ${bootDir}`)
     toolPath = await tc.cacheDir(
       bootDir,
-      'Boot',
+      identifier,
       utils.getCacheVersionString(version)
     )
   }

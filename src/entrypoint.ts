@@ -88,11 +88,13 @@ async function main(): Promise<void> {
 }
 
 async function pre(): Promise<void> {
-  cache.restore(getTools())
+  if (!core.getInput('invalidate-cache')) {
+    cache.restore()
+  }
 }
 
 async function post(): Promise<void> {
-  cache.save(getTools())
+  cache.save()
 }
 
 export type Tools = {

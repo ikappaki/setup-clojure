@@ -39,11 +39,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.setup = exports.extract = exports.getArtifactUrl = exports.getArtifactName = exports.getLatestBabashka = void 0;
+exports.setup = exports.extract = exports.getArtifactUrl = exports.getArtifactName = exports.getLatestBabashka = exports.identifier = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const tc = __importStar(__nccwpck_require__(7784));
 const http = __importStar(__nccwpck_require__(6255));
 const os = __importStar(__nccwpck_require__(2037));
+exports.identifier = 'Babashka';
 function getLatestBabashka(githubAuth) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
@@ -88,12 +89,12 @@ exports.extract = extract;
 function setup(version, githubAuth) {
     return __awaiter(this, void 0, void 0, function* () {
         const ver = version === 'latest' ? yield getLatestBabashka(githubAuth) : version;
-        let toolDir = tc.find('Babashka', ver);
+        let toolDir = tc.find(exports.identifier, ver);
         if (!toolDir) {
             const archiveUrl = getArtifactUrl(ver);
             const archiveDir = yield tc.downloadTool(archiveUrl, undefined, githubAuth);
             toolDir = yield extract(archiveDir);
-            yield tc.cacheDir(toolDir, 'Babashka', ver);
+            yield tc.cacheDir(toolDir, exports.identifier, ver);
         }
         core.addPath(toolDir);
     });
@@ -141,7 +142,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.setup = void 0;
+exports.setup = exports.identifier = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const io = __importStar(__nccwpck_require__(7436));
 const tc = __importStar(__nccwpck_require__(7784));
@@ -150,6 +151,7 @@ const path = __importStar(__nccwpck_require__(1017));
 const os = __importStar(__nccwpck_require__(2037));
 const fs = __importStar(__nccwpck_require__(6078));
 const utils = __importStar(__nccwpck_require__(918));
+exports.identifier = 'Boot';
 function getTempDirectory() {
     let tempDirectory = process.env['RUNNER_TEMP'] || '';
     if (!tempDirectory) {
@@ -171,7 +173,7 @@ function getTempDirectory() {
 }
 function setup(version, githubAuth) {
     return __awaiter(this, void 0, void 0, function* () {
-        let toolPath = tc.find('Boot', utils.getCacheVersionString(version), os.arch());
+        let toolPath = tc.find(exports.identifier, utils.getCacheVersionString(version), os.arch());
         if (utils.isWindows()) {
             yield setWindowsRegistry();
         }
@@ -183,7 +185,7 @@ function setup(version, githubAuth) {
             const tempDir = path.join(getTempDirectory(), `temp_${Math.floor(Math.random() * 2000000000)}`);
             const bootDir = yield installBoot(bootBootstrapFile, tempDir, version);
             core.debug(`Boot installed to ${bootDir}`);
-            toolPath = yield tc.cacheDir(bootDir, 'Boot', utils.getCacheVersionString(version));
+            toolPath = yield tc.cacheDir(bootDir, exports.identifier, utils.getCacheVersionString(version));
         }
         core.exportVariable('BOOT_HOME', toolPath);
         if (version !== 'latest') {
@@ -289,19 +291,28 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.restore = exports.save = void 0;
 const cache = __importStar(__nccwpck_require__(7799));
 const core = __importStar(__nccwpck_require__(2186));
 const path = __importStar(__nccwpck_require__(1017));
-const utils_1 = __nccwpck_require__(918);
+const os_1 = __importDefault(__nccwpck_require__(2037));
 const version_1 = __nccwpck_require__(8217);
+const babashka = __importStar(__nccwpck_require__(6501));
+const boot = __importStar(__nccwpck_require__(7478));
+const cli = __importStar(__nccwpck_require__(2504));
+const cljstyle = __importStar(__nccwpck_require__(2661));
+const cljKondo = __importStar(__nccwpck_require__(5736));
+const leiningen = __importStar(__nccwpck_require__(5479));
+const zprint = __importStar(__nccwpck_require__(982));
 const cacheDir = process.env['RUNNER_TOOL_CACHE'] || '';
-const platform = (0, utils_1.isWindows)() ? 'windows' : (0, utils_1.isMacOS)() ? 'darwin' : 'linux';
-function save(tools) {
+function save() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            yield cache.saveCache(getCachePaths(tools), getCacheKey(tools));
+            yield cache.saveCache(getCachePaths(), getCacheKey());
         }
         catch (err) {
             core.info('Can not save cache.');
@@ -309,10 +320,10 @@ function save(tools) {
     });
 }
 exports.save = save;
-function restore(tools) {
+function restore() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            yield cache.restoreCache(getCachePaths(tools), getCacheKey(tools), []);
+            yield cache.restoreCache(getCachePaths(), getCacheKey(), []);
         }
         catch (err) {
             core.info('Can not restore cache');
@@ -320,36 +331,22 @@ function restore(tools) {
     });
 }
 exports.restore = restore;
-function getCacheKey(tools) {
-    return `setup-clojure-${version_1.VERSION}-${platform}-${getIdentifiers(tools).join('-')}`;
+function getCacheKey() {
+    return `setup-clojure-${os_1.default.platform()}-${version_1.VERSION}-${getIdentifiers().join('-')}`;
 }
-function getCachePaths(tools) {
-    return getIdentifiers(tools).map(tool => path.join(cacheDir, tool));
+function getCachePaths() {
+    return getIdentifiers().map(tool => path.join(cacheDir, tool));
 }
-function getIdentifiers({ LEIN_VERSION, BOOT_VERSION, TDEPS_VERSION, CLI_VERSION, BB_VERSION, CLJ_KONDO_VERSION, CLJSTYLE_VERSION, ZPRINT_VERSION }) {
-    const identifiers = [];
-    if (LEIN_VERSION) {
-        identifiers.push('Leiningen');
-    }
-    if (BOOT_VERSION) {
-        identifiers.push('Boot');
-    }
-    if (TDEPS_VERSION || CLI_VERSION) {
-        identifiers.push('ClojureToolsDeps');
-    }
-    if (BB_VERSION) {
-        identifiers.push('Babashka');
-    }
-    if (CLJ_KONDO_VERSION) {
-        identifiers.push('clj-kondo');
-    }
-    if (CLJSTYLE_VERSION) {
-        identifiers.push('cljstyle');
-    }
-    if (ZPRINT_VERSION) {
-        identifiers.push('zprint');
-    }
-    return identifiers;
+function getIdentifiers() {
+    return [
+        leiningen.identifier,
+        boot.identifier,
+        cli.identifier,
+        babashka.identifier,
+        cljKondo.identifier,
+        cljstyle.identifier,
+        zprint.identifier
+    ];
 }
 
 
@@ -393,7 +390,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.setupWindows = exports.getLatestDepsClj = exports.setup = void 0;
+exports.setupWindows = exports.getLatestDepsClj = exports.setup = exports.identifier = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const io = __importStar(__nccwpck_require__(7436));
 const tc = __importStar(__nccwpck_require__(7784));
@@ -403,25 +400,27 @@ const path = __importStar(__nccwpck_require__(1017));
 const os = __importStar(__nccwpck_require__(2037));
 const fs = __importStar(__nccwpck_require__(6078));
 const utils = __importStar(__nccwpck_require__(918));
+exports.identifier = 'ClojureToolsDeps';
 function setup(version, githubToken) {
     return __awaiter(this, void 0, void 0, function* () {
-        const toolPath = tc.find('ClojureToolsDeps', utils.getCacheVersionString(version), os.arch());
+        const installDir = '/tmp/usr/local/opt';
+        const toolPath = tc.find(exports.identifier, utils.getCacheVersionString(version), os.arch());
         if (toolPath && version !== 'latest') {
             core.info(`Clojure CLI found in cache ${toolPath}`);
-            yield fs.mkdir('/tmp/usr/local/opt', { recursive: true });
-            yield fs.cp(toolPath, '/tmp/usr/local/opt/clojure', { recursive: true });
+            yield fs.mkdir(installDir, { recursive: true });
+            yield fs.cp(toolPath, path.join(installDir, 'clojure'), { recursive: true });
         }
         else {
             const clojureInstallScript = yield tc.downloadTool(`https://download.clojure.org/install/linux-install${version === 'latest' ? '' : `-${version}`}.sh`);
             if (utils.isMacOS()) {
                 yield MacOSDeps(clojureInstallScript, githubToken);
             }
-            const clojureToolsDir = yield runLinuxInstall(clojureInstallScript, '/tmp/usr/local/opt/clojure');
+            const clojureToolsDir = yield runLinuxInstall(clojureInstallScript, path.join(installDir, 'clojure'));
             core.debug(`clojure tools deps installed to ${clojureToolsDir}`);
-            yield tc.cacheDir(clojureToolsDir, 'ClojureToolsDeps', utils.getCacheVersionString(version));
+            yield tc.cacheDir(clojureToolsDir, exports.identifier, utils.getCacheVersionString(version));
         }
-        core.exportVariable('CLOJURE_INSTALL_DIR', '/tmp/usr/local/opt/clojure/lib/clojure');
-        core.addPath('/tmp/usr/local/opt/clojure/bin');
+        core.exportVariable('CLOJURE_INSTALL_DIR', path.join(installDir, 'clojure', 'lib', 'clojure'));
+        core.addPath(path.join(installDir, 'clojure', 'bin'));
     });
 }
 exports.setup = setup;
@@ -533,11 +532,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.setup = exports.getArtifactUrl = exports.getArtifactName = exports.getLatestCljKondo = void 0;
+exports.setup = exports.getArtifactUrl = exports.getArtifactName = exports.getLatestCljKondo = exports.identifier = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const http = __importStar(__nccwpck_require__(6255));
 const os = __importStar(__nccwpck_require__(2037));
 const tc = __importStar(__nccwpck_require__(7784));
+exports.identifier = 'clj-kondo';
 function getLatestCljKondo(githubAuth) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
@@ -574,13 +574,13 @@ exports.getArtifactUrl = getArtifactUrl;
 function setup(version, githubAuth) {
     return __awaiter(this, void 0, void 0, function* () {
         const ver = version === 'latest' ? yield getLatestCljKondo(githubAuth) : version;
-        let toolDir = tc.find('clj-kondo', ver);
+        let toolDir = tc.find(exports.identifier, ver);
         if (!toolDir) {
             const archiveUrl = getArtifactUrl(ver);
             core.info(`Downloading: ${archiveUrl}`);
             const artifactFile = yield tc.downloadTool(archiveUrl, undefined, githubAuth);
             const extractedDir = yield tc.extractZip(artifactFile);
-            toolDir = yield tc.cacheDir(extractedDir, 'clj-kondo', ver);
+            toolDir = yield tc.cacheDir(extractedDir, exports.identifier, ver);
             core.info(`Caching directory: ${toolDir}`);
         }
         else {
@@ -632,11 +632,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.setup = exports.getArtifactUrl = exports.getArtifactName = exports.getLatestCljstyle = void 0;
+exports.setup = exports.getArtifactUrl = exports.getArtifactName = exports.getLatestCljstyle = exports.identifier = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const http = __importStar(__nccwpck_require__(6255));
 const os = __importStar(__nccwpck_require__(2037));
 const tc = __importStar(__nccwpck_require__(7784));
+exports.identifier = 'cljstyle';
 function getLatestCljstyle(githubAuth) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
@@ -671,13 +672,13 @@ exports.getArtifactUrl = getArtifactUrl;
 function setup(version, githubAuth) {
     return __awaiter(this, void 0, void 0, function* () {
         const ver = version === 'latest' ? yield getLatestCljstyle(githubAuth) : version;
-        let toolDir = tc.find('cljstyle', ver);
+        let toolDir = tc.find(exports.identifier, ver);
         if (!toolDir) {
             const archiveUrl = getArtifactUrl(ver);
             core.info(`Downloading: ${archiveUrl}`);
             const artifactFile = yield tc.downloadTool(archiveUrl, undefined, githubAuth);
             const extractedDir = yield tc.extractZip(artifactFile);
-            toolDir = yield tc.cacheDir(extractedDir, 'cljstyle', ver);
+            toolDir = yield tc.cacheDir(extractedDir, exports.identifier, ver);
             core.info(`Caching directory: ${toolDir}`);
         }
         else {
@@ -796,12 +797,14 @@ function main() {
 }
 function pre() {
     return __awaiter(this, void 0, void 0, function* () {
-        cache.restore(getTools());
+        if (!core.getInput('invalidate-cache')) {
+            cache.restore();
+        }
     });
 }
 function post() {
     return __awaiter(this, void 0, void 0, function* () {
-        cache.save(getTools());
+        cache.save();
     });
 }
 function getTools() {
@@ -913,7 +916,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.setup = void 0;
+exports.setup = exports.identifier = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const io = __importStar(__nccwpck_require__(7436));
 const tc = __importStar(__nccwpck_require__(7784));
@@ -922,10 +925,11 @@ const path = __importStar(__nccwpck_require__(1017));
 const os = __importStar(__nccwpck_require__(2037));
 const fs = __importStar(__nccwpck_require__(6078));
 const utils = __importStar(__nccwpck_require__(918));
+exports.identifier = 'Leiningen';
 function setup(version, githubAuth) {
     return __awaiter(this, void 0, void 0, function* () {
         const isWindows = utils.isWindows();
-        let toolPath = tc.find('Leiningen', utils.getCacheVersionString(version), os.arch());
+        let toolPath = tc.find(exports.identifier, utils.getCacheVersionString(version), os.arch());
         if (toolPath && version !== 'latest') {
             core.info(`Leiningen found in cache ${toolPath}`);
         }
@@ -934,7 +938,7 @@ function setup(version, githubAuth) {
             const tempDir = path.join(utils.getTempDir(), `temp_${Math.floor(Math.random() * 2000000000)}`);
             const leiningenDir = yield installLeiningen(leiningenFile, tempDir);
             core.debug(`Leiningen installed to ${leiningenDir}`);
-            toolPath = yield tc.cacheDir(leiningenDir, 'Leiningen', utils.getCacheVersionString(version));
+            toolPath = yield tc.cacheDir(leiningenDir, exports.identifier, utils.getCacheVersionString(version));
         }
         core.exportVariable('LEIN_HOME', toolPath);
         core.addPath(path.join(toolPath, 'bin'));
@@ -1110,12 +1114,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.setup = exports.getArtifactUrl = exports.getArtifactName = exports.getLatestZprint = void 0;
+exports.setup = exports.getArtifactUrl = exports.getArtifactName = exports.getLatestZprint = exports.identifier = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const http = __importStar(__nccwpck_require__(6255));
 const os = __importStar(__nccwpck_require__(2037));
 const tc = __importStar(__nccwpck_require__(7784));
 const fs = __importStar(__nccwpck_require__(6078));
+exports.identifier = 'zprint';
 function getLatestZprint(githubAuth) {
     var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
@@ -1152,13 +1157,13 @@ exports.getArtifactUrl = getArtifactUrl;
 function setup(version, githubAuth) {
     return __awaiter(this, void 0, void 0, function* () {
         const ver = version === 'latest' ? yield getLatestZprint(githubAuth) : version;
-        let toolDir = tc.find('zprint', ver);
+        let toolDir = tc.find(exports.identifier, ver);
         if (!toolDir) {
             const archiveUrl = getArtifactUrl(ver);
             core.info(`Artifact: ${archiveUrl}`);
             const artifactFile = yield tc.downloadTool(archiveUrl, undefined, githubAuth);
             yield fs.chmod(artifactFile, '0755');
-            toolDir = yield tc.cacheFile(artifactFile, 'zprint', 'zprint', ver);
+            toolDir = yield tc.cacheFile(artifactFile, exports.identifier, 'zprint', ver);
             core.info(`Saved: ${toolDir}`);
         }
         else {
