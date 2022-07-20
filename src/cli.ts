@@ -138,7 +138,7 @@ export async function setupWindows(
   const url = `download.clojure.org/install/win-install${
     version === 'latest' ? '' : `-${version}`
   }.ps1`
-  await exec.exec(`powershell -c "iwr -useb ${url} | iex"`, [], {
+  await exec.exec(`powershells -c "iwr -useb ${url} | iex"`, [], {
     env: {"PSModulePath" : "C:\Program Files\WindowsPowerShell\Modules"},
     input: Buffer.from('4')
   })
