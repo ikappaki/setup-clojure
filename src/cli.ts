@@ -140,6 +140,6 @@ export async function setupWindows(
   }.ps1`
   await exec.exec(`powershell -c "iwr -useb ${url} | iex"`, [], {
     env: {"PSModulePath" : "C:\Program Files\WindowsPowerShell\Modules"},
-    input: Buffer.from('1')
+    input: Buffer.from('4')
   })
 }
