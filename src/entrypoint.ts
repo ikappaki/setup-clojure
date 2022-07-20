@@ -141,7 +141,7 @@ async function pre(): Promise<void> {
       core.debug(error)
     }
   } else {
-    core.debug('Invalidate cache!')
+    core.debug(`Invalidate cache! ${core.getInput('invalidate-cache')}`)
   }
 }
 
