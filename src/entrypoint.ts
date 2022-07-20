@@ -138,7 +138,7 @@ async function pre(): Promise<void> {
       await Promise.all(tools)
     } catch (err) {
       const error = err instanceof Error ? err.message : String(err)
-      core.info(error)
+      core.debug(error)
     }
   }
 }
@@ -193,7 +193,7 @@ async function post(): Promise<void> {
     await Promise.all(tools)
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err)
-    core.info(error)
+    core.debug(error)
   }
 }
 

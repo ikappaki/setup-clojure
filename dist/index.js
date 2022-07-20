@@ -311,7 +311,7 @@ function save(identifier, version) {
         }
         catch (err) {
             const error = err instanceof Error ? err.message : String(err);
-            core.info(error);
+            core.debug(error);
         }
     });
 }
@@ -325,7 +325,7 @@ function restore(identifier, version) {
         }
         catch (err) {
             const error = err instanceof Error ? err.message : String(err);
-            core.info(error);
+            core.debug(error);
         }
     });
 }
@@ -817,7 +817,7 @@ function pre() {
             }
             catch (err) {
                 const error = err instanceof Error ? err.message : String(err);
-                core.info(error);
+                core.debug(error);
             }
         }
     });
@@ -855,7 +855,7 @@ function post() {
         }
         catch (err) {
             const error = err instanceof Error ? err.message : String(err);
-            core.info(error);
+            core.debug(error);
         }
     });
 }

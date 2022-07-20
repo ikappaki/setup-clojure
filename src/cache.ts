@@ -16,7 +16,7 @@ export async function save(identifier: string, version: string): Promise<void> {
     }
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err)
-    core.info(error)
+    core.debug(error)
   }
 }
 
@@ -34,7 +34,7 @@ export async function restore(
     }
   } catch (err) {
     const error = err instanceof Error ? err.message : String(err)
-    core.info(error)
+    core.debug(error)
   }
 }
 
